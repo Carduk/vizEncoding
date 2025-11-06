@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codificador/Decodificador</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #cccccc; 
+            background-image: linear-gradient(to left, red, orange, yellow, green, blue, indigo, violet);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .rainbow-h1 {
+            background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+            text-shadow: #fff 2px 2px 2px;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 5s linear infinite;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        
+        .description {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .option-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .encode-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .encode-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .decode-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .decode-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            min-height: 100px;
+            border: 1px dashed #bdc3c7;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .result-text {
+            word-break: break-word;
+        }
+        
+        .copy-btn {
+            display: block;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background-color: #8e44ad;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .options {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="rainbow-h1">Codificador/Decodificador</h1>
+        <p class="description">
+            Esta aplicación permite codificar y decodificar texto utilizando una función dummy simple.
+            Introduce tu texto y selecciona la opción deseada.
+        </p>
+        
+        <div class="input-group">
+            <label for="inputText">Texto:</label>
+            <textarea id="inputText" placeholder="Escribe o pega tu texto aquí..."></textarea>
+        </div>
+        
+        <div class="options">
+            <button class="option-btn encode-btn" id="encodeBtn">Codificar</button>
+            <button class="option-btn decode-btn" id="decodeBtn">Decodificar</button>
+        </div>
+        
+        <div id="resultContainer" class="hidden">
+            <div class="result-label">Resultado:</div>
+            <div class="result">
+                <div id="resultText" class="result-text"></div>
+            </div>
+            <button class="copy-btn" id="copyBtn">Copiar resultado</button>
+        </div>
+    </div>
+
+    <script>
+        const diccionario = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz0123456789";
+        const numbers = "0123456789";
+
+        function checkNTabla(text){
+            for(let i = 0; i < text.length; i++){
+                if(numbers.includes(text[i])){
+                    return parseInt(text[i]);
+                }
+            }
+            return 0;
+        }
+
+        function randomizeTable(table, seed) {
+            let arr = table.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                seed = (seed * 9301 + 49297) % 233280;
+                let j = Math.floor((seed / 233280) * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+
+        function randomizeByTable(word, table, seed) {
+            const mayusculas = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
+            const code = "CODIGO" + seed;
+            if (mayusculas.split('').includes(word[0])) {
+                word = code + word;
+            } else {
+                word = word + code;
+            }
+            let result = '';
+            for (let char of word) {
+                let index = diccionario.indexOf(char);
+                if (index !== -1) {
+                    result += table[index];
+                } else {
+                    result += char;
+                }
+            }
+            return result;
+        }
+
+        function randomizeByTableNOCODE(word, table) {
+            let result = '';
+            for (let char of word) {
+                let index = diccionario.indexOf(char);
+                if (index !== -1) {
+                    result += table[index];
+                } else {
+                    result += char;
+                }
+            }
+            console.log(result+'\n');
+        }
+
+        function showTables(){
+            //Showing all codes
+            for (let i = 0; i < 11; i++) {
+                randomizeByTableNOCODE('CODIGO' + i, randomizeTable(diccionario, 10));
+            }
+        }
+
+        function unrandomize(word) {
+            let table = '';
+            for (let i = 0; i < 11; i++) {
+                table = randomizeTable(diccionario, i);
+                let decoded = '';
+                for (let char of word) {
+                    let index = table.indexOf(char);
+                    if (index !== -1) {
+                        decoded += diccionario[index];
+                    } else {
+                        decoded += char;
+                    }
+                }
+                if (decoded.includes('CODIGO' + i.toString())) {
+                    return decoded.replace('CODIGO' + i.toString(), '');
+                }
+            }
+        }
+
+        // Elementos DOM
+        const inputText = document.getElementById('inputText');
+        const encodeBtn = document.getElementById('encodeBtn');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultText = document.getElementById('resultText');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // Event listeners
+        encodeBtn.addEventListener('click', function() {
+            const text = inputText.value.trim();
+            if (text === '') {
+                alert('Por favor, introduce un texto para codificar.');
+                return;
+            }
+            try {
+                showTables();
+                const n = checkNTabla(text);
+                const r1 = randomizeByTable(text, randomizeTable(diccionario, n), n);
+                const r2 = randomizeByTable(r1, randomizeTable(diccionario, 10), 10);
+                resultText.textContent = r2;
+                resultContainer.classList.remove('hidden');
+            } catch (error) {
+                alert('Error al codificar el texto: ' + error.message);
+            }
+        });
+
+        decodeBtn.addEventListener('click', function() {
+            const text = inputText.value.trim();
+            if (text === '') {
+                alert('Por favor, introduce un texto para decodificar.');
+                return;
+            }
+            
+            try {
+                const ur1 = unrandomize(text);
+                const ur2 = unrandomize(ur1);
+                resultText.textContent = ur2;
+                resultContainer.classList.remove('hidden');
+            } catch (error) {
+                alert('Error al decodificar el texto: ' + error.message);
+            }
+        });
+
+        copyBtn.addEventListener('click', function() {
+            const textToCopy = resultText.textContent;
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    // Cambiar temporalmente el texto del botón
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '¡Copiado!';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Error al copiar: ', err);
+                    alert('No se pudo copiar el texto. Por favor, cópialo manualmente.');
+                });
+        });
+    </script>
+</body>
+</html>
